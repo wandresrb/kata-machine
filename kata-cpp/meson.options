@@ -1,0 +1,4 @@
+option('day', type: 'string', value: '',
+       description: 'Day folder under src/ holding the kata headers (e.g. day1)')
+option('katas', type: 'array', value: [],
+       description: 'Kata names (PascalCase) to build and test, e.g. BubbleSort,LRU')

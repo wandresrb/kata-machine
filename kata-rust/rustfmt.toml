@@ -1,0 +1,2 @@
+# Keep `pub mod types;` above the generated `code` module in lib.rs.
+reorder_modules = false

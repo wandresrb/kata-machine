@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "ESNext"
+        ],
+        "target": "ESNext",
+        "module": "Preserve",
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "allowImportingTsExtensions": true,
+        "verbatimModuleSyntax": false,
+        "noEmit": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "noImplicitReturns": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "types": [
+            "bun",
+            "bun-types/test-globals"
+        ],
+        "baseUrl": "src",
+        "paths": {
+            "@code/*": [
+                "day1/*"
+            ]
+        }
+    },
+    "include": [
+        "./src/**/*",
+        "./scripts/**/*"
+    ]
+}

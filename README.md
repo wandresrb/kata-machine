@@ -1,96 +1,86 @@
-## Developed live on twitch
-[ThePrimeagen](https://twitch.tv/ThePrimeagen)
+# kata-machine (JS/TS + C++ + Rust)
 
-## Naming
-### Lig-Machine
-Lengthy Instrumentation Generating Massive Anticompetitive Computational Help for Intermediate Coders // n9
+Fork of [ThePrimeagen/kata-machine](https://github.com/ThePrimeagen/kata-machine), the companion repo for the
+[Frontend Masters algorithms course](https://frontendmasters.com/courses/algorithms/). Same katas and same
+tests, in three languages:
 
-### Ligmata
-Literal Improvement Gaining Master and Tutelage on Algorithms
-Let's Intelligently Generate Multiple Algorithm Training Assessments // permdaddy
+| Language | Folder | Tooling |
+| --- | --- | --- |
+| TypeScript | `kata-js/` | [bun](https://bun.sh) (`bun test`) |
+| C++23 | `kata-cpp/` | meson + ninja + clang++, with AddressSanitizer/UBSan enabled |
+| Rust | `kata-rust/` | cargo (no dependencies) |
 
-### Sugma Nuts
-Studious Users Get Major Abilities. New Useful Training for Students
+## Requirements
 
-### Ligma Farts
-Learn Intermediate Groundbreaking Massive Algorithms. Free Algorithm Research & Training System
-
-
-### If you have a suggestion
-make an issue and we will come up with the potential name.
-
-### WARNING
-I have just started to add algorithms, so the number of supported algorithms is
-limited at the moment, but will grow fairly quick.
-
-### WARNING
-OUT OF DATE.  We have quite a few more.  need to update
-### Supported Algorithm
-* Insertion sort
-* Merge sort
-* QuickSort
-* Prim's MST (Adjacency List)
-* Dijkstra's Shortest Path (Adjacency List)
-
-### Supported Data Structures
-* Singly linked list
-* Doubly linked list
-* Queue
-* Stack
-* Graph with Adjacency List
-* Graph with Adjacency Matrix (untested)
-
-### How It Works
-
-Make sure you have [Node.js](https://nodejs.org/en/) and yarn installed: `npm install --global yarn`
-
-clone the repo and install the dependencies
+[`just`](https://github.com/casey/just), `bun`, `meson`, `ninja`, `clang++` (C++23) and `cargo`.
 
 ```bash
-yarn install
+just install    # bun install inside kata-js/ (types for the editor + typecheck)
 ```
 
-edit the `ligma.config.js` file
-```javascript
-module.exports = {
-    dsa: [
-        "InsertionSort",
-        "MergeSort",
-        "Queue",
-        "Stack",
-        "QuickSort",
-        "DijkstraList",
-        "PrimsList",
-    ],
-}
+## Daily flow
+
+1. Edit `katas.txt` (one kata per line, `#` comments it out). `just katas` lists every available kata.
+2. Generate the day:
+
+    ```bash
+    just generate             # js, cpp and rust
+    just generate cpp rust    # only those languages
+    ```
+
+    This creates `kata-js/src/dayN/`, `kata-cpp/src/dayN/` and `kata-rust/src/dayN/` with empty stubs (same N in
+    every language), points the `@code/*` alias in `kata-js/tsconfig.json` at the new day and updates
+    `kata-rust/src/lib.rs`.
+
+3. Solve them and run the tests (only the katas present in the latest day run):
+
+    ```bash
+    just test                  # js (bun test)
+    just test cpp              # C++  (meson test)
+    just test rust             # Rust (cargo test)
+    just test cpp LRU MinHeap  # only some katas
+    just test-all              # all three, with a summary at the end
+    ```
+
+Other recipes: `just clear [lang...]` deletes the `dayN` folders, `just stats` shows how many times you've
+practiced each kata (from `history.log`), `just typecheck` and `just fmt`. Run `just` to list them.
+
+## Layout
+
+```
+justfile                 every command
+katas.txt                katas of the day
+
+kata-js/
+  package.json, bun.lock   dev dependencies only (typescript, @types/bun, prettier)
+  tsconfig.json            the `@code/*` alias points at the current day
+  scripts/                 TS stub generator + dsa.ts (signatures)
+  src/__tests__/           TS tests (upstream)
+  src/golden/              reference solutions
+  src/dayN/                your TS solutions
+
+kata-cpp/
+  include/kata/types.hpp   Point, BinaryNode, GraphEdge, List concept...
+  templates/<Kata>.hpp     stubs that generate copies
+  tests/<Kata>.cpp         tests (fixtures in tests/fixtures)
+  src/dayN/<Kata>.hpp      your solutions
+
+kata-rust/
+  src/types.rs             Point, BinaryNode, GraphEdge, List trait...
+  src/lib.rs               generated: `code` = the current day
+  templates/<kata>.rs      stubs
+  tests/<kata>.rs          tests (fixtures in tests/common)
+  src/dayN/<kata>.rs       your solutions
 ```
 
-create a day of katas, this will use the list in the `ligma.config.js`.
-```bash
-yarn generate
-```
+## Conventions between languages
 
-this will progressively create folders named
-
-```
-src/day1
-src/day2
-...
-```
-
-`yarn generate` will also update the `tsconfig.json` and `jest.config` to point
-the latest `day` folder via tspaths.  This allows us to avoid updating anything
-for testing each day.
-
-#### Testing
-```
-yarn test
-```
-
-I have yet to create a testing strategy for next sets of algorithms, but we
-will get there when i cross that bridge.
-
-### Help wanted
-A simple way to specify test, thinking something like `tests.json` and `cat
-test.json 2> /dev/null` to specify the tests to run.  tests.json wouldn't be
-committed.
+- C++ and Rust use `snake_case`: `removeAt` → `remove_at`, `insertAt` → `insert_at`, `length` → `length()` / `len()`.
+- C++: `delete` is a keyword, so `delete` methods are called `remove` (`MinHeap::remove`, `Map::remove`,
+  `Trie::remove`). Rust keeps `delete`.
+- "Maybe there's nothing" values: `undefined`/`null`/`-1` in TS → `std::optional` in C++ → `Option` in Rust
+  (for example, `two_crystal_balls` returns `std::nullopt` / `None` instead of `-1`).
+- Rust: getters (`get`, `peek`) return `Option<T>` with `T: Clone`, so you can implement lists with
+  `Option<Box<Node>>`, `Rc<RefCell<..>>` or raw pointers + `unsafe`.
+- C++: the build uses ASan + UBSan, so leaks, use-after-free and out-of-bounds accesses in your linked lists fail the
+  test. `kata-cpp/.clangd` points clangd at `build/compile_commands.json` (run `just test cpp` once).
