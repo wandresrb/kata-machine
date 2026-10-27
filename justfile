@@ -79,6 +79,8 @@ test lang="js" *only:
         js)
             args=()
             for k in "${names[@]}"; do args+=("./src/__tests__/$k.ts"); done
+            # point the @code/* alias at the day we're testing
+            sed -i -E "s#\"day[0-9]+/\*\"#\"$day/*\"#" kata-js/tsconfig.json
             cd kata-js && bun test "${args[@]}" ;;
         cpp)
             cd kata-cpp
@@ -106,6 +108,30 @@ test-all *only:
     done
     printf "\nsummary:\n$summary"
     exit $status
+
+# run the cpp and rust tests against the reference solutions in golden/
+test-golden:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    katas=$(ls kata-cpp/golden | sed 's/\.hpp$//' | paste -sd,)
+    cd kata-cpp
+    if [[ -f build-golden/build.ninja ]]; then
+        meson configure build-golden -Dday=../golden -Dkatas="$katas"
+    else
+        CXX={{cxx}} meson setup build-golden -Dday=../golden -Dkatas="$katas"
+    fi
+    meson test -C build-golden --print-errorlogs
+    cd ..
+
+    # point lib.rs at golden/ while testing, then back at your latest day
+    trap 'n=$(just _latest-day rust); just _rust-day "day${n:-0}"' EXIT
+    just _rust-day ../golden
+    args=()
+    for f in kata-rust/golden/*.rs; do
+        k=$(basename "$f" .rs)
+        [[ $k == mod ]] || args+=(--test "$k")
+    done
+    cd kata-rust && cargo test "${args[@]}"
 
 # delete every dayN (all languages, or only the ones given)
 clear *only:

@@ -18,6 +18,12 @@ tests, in three languages:
 just install    # bun install inside kata-js/ (types for the editor + typecheck)
 ```
 
+Tab completion for kata names and languages (`just test js Line<TAB>`): add to `~/.bashrc`
+
+```bash
+source ~/repos/algo/kata-machine/completions/just.bash
+```
+
 ## Daily flow
 
 1. Edit `katas.txt` (one kata per line, `#` comments it out). `just katas` lists every available kata.
@@ -42,6 +48,9 @@ just install    # bun install inside kata-js/ (types for the editor + typecheck)
     just test-all              # all three, with a summary at the end
     ```
 
+Stuck? Reference solutions live in `kata-js/src/golden/` (Prim's only, from upstream), `kata-cpp/golden/` and
+`kata-rust/golden/` (all 29). Try first, compare after. `just test-golden` runs the C++/Rust tests against them.
+
 Other recipes: `just clear [lang...]` deletes the `dayN` folders, `just stats` shows how many times you've
 practiced each kata (from `history.log`), `just typecheck` and `just fmt`. Run `just` to list them.
 
@@ -62,6 +71,7 @@ kata-js/
 kata-cpp/
   include/kata/types.hpp   Point, BinaryNode, GraphEdge, List concept...
   templates/<Kata>.hpp     stubs that generate copies
+  golden/<Kata>.hpp        reference solutions
   tests/<Kata>.cpp         tests (fixtures in tests/fixtures)
   src/dayN/<Kata>.hpp      your solutions
 
@@ -69,6 +79,7 @@ kata-rust/
   src/types.rs             Point, BinaryNode, GraphEdge, List trait...
   src/lib.rs               generated: `code` = the current day
   templates/<kata>.rs      stubs
+  golden/<kata>.rs         reference solutions
   tests/<kata>.rs          tests (fixtures in tests/common)
   src/dayN/<kata>.rs       your solutions
 ```
